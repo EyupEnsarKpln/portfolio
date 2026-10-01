@@ -31,10 +31,6 @@
     <div class="bg-orb orb-2"></div>
     <div class="bg-noise"></div>
 
-    <!-- Custom Cursor -->
-    <div class="cursor-dot"></div>
-    <div class="cursor-outline"></div>
-
     <!-- Preview Container Structure -->
     <div class="preview-container-page" id="preview-container">
         <!-- Top bar controls -->
@@ -97,19 +93,31 @@
     </div>
 
     <!-- Custom Context Menu -->
-    <div id="cyber-context-menu" class="cyber-context-menu">
-        <div class="context-item" id="ctx-copy">
+    <div id="cyber-context-menu" class="cyber-context-menu" aria-label="Hızlı işlemler" aria-hidden="true">
+        <button type="button" class="context-item" id="ctx-copy">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            Kopyala
-        </div>
-        <div class="context-item" id="ctx-hack">
+            Seçimi kopyala
+        </button>
+        <button type="button" class="context-item" id="ctx-copy-image" hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="m21 15-5-5L5 21"></path></svg>
+            Resmi kopyala
+        </button>
+        <button type="button" class="context-item" id="ctx-copy-link" hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            Bağlantıyı kopyala
+        </button>
+        <button type="button" class="context-item" id="ctx-share" hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.7 6.8-4.4M8.6 13.3l6.8 4.4"></path></svg>
+            Sayfayı paylaş
+        </button>
+        <button type="button" class="context-item" id="ctx-hack">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
             Sistemi Hackle
-        </div>
-        <div class="context-item" id="ctx-mail">
+        </button>
+        <button type="button" class="context-item" id="ctx-mail">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
             İletişime Geç
-        </div>
+        </button>
     </div>
 
     <!-- Scripts -->

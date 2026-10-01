@@ -29,35 +29,6 @@ body {
     color: var(--text-main);
     overflow-x: hidden;
     line-height: 1.6;
-    cursor: none;
-    /* Custom cursor */
-}
-
-/* Custom Cursor */
-.cursor-dot,
-.cursor-outline {
-    position: fixed;
-    top: 0;
-    left: 0;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    z-index: 9999;
-    pointer-events: none;
-}
-
-.cursor-dot {
-    width: 8px;
-    height: 8px;
-    background-color: var(--accent-2);
-    box-shadow: 0 0 10px var(--accent-2), 0 0 20px rgba(0, 255, 213, 0.3);
-}
-
-.cursor-outline {
-    width: 40px;
-    height: 40px;
-    border: 1.5px solid rgba(0, 255, 213, 0.6);
-    transition: width 0.2s, height 0.2s, background-color 0.2s, top 0.15s ease-out, left 0.15s ease-out;
-    box-shadow: 0 0 15px rgba(0, 255, 213, 0.1);
 }
 
 /* Background Effects */
@@ -444,8 +415,44 @@ h1.glitch::after {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
-    opacity: 0.6;
+    gap: 0.35rem;
+    padding: 0.5rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-family: var(--font-heading);
+    font-size: 0.68rem;
+    transition: color 0.25s, transform 0.25s;
+}
+
+.scroll-indicator:hover,
+.scroll-indicator:focus-visible {
+    color: var(--accent-2);
+    transform: translate(-50%, -2px);
+}
+
+.scroll-indicator:focus-visible,
+.github-feature-link:focus-visible,
+.context-item:focus-visible {
+    outline: 2px solid var(--accent-2);
+    outline-offset: 4px;
+}
+
+.explore-label {
+    white-space: nowrap;
+}
+
+.explore-arrow {
+    color: var(--accent-2);
+    font-size: 1rem;
+    line-height: 1;
+    animation: explore-float 1.5s ease-in-out infinite;
+}
+
+@keyframes explore-float {
+    0%, 100% { transform: translateY(0); opacity: 0.55; }
+    50% { transform: translateY(5px); opacity: 1; }
 }
 
 .mouse {
@@ -494,7 +501,7 @@ h1.glitch::after {
     aspect-ratio: 1 / 1;
     border-radius: 12px;
     overflow: hidden;
-    cursor: none;
+    cursor: pointer;
     background: rgba(3, 0, 20, 0.4);
     padding: 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -770,12 +777,68 @@ h1.glitch::after {
 }
 
 /* Contact */
-.contact-container {
-    max-width: 600px;
+.contact-container.glass-panel {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    max-width: 740px;
     margin: 0 auto;
     text-align: center;
-    padding: 4rem !important;
-    border-radius: 30px;
+    padding: clamp(2rem, 6vw, 4rem) !important;
+    border-radius: 28px;
+    background: rgba(7, 3, 24, 0.1);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28), inset 0 1px rgba(255, 255, 255, 0.12);
+    animation: contact-arrive 0.8s cubic-bezier(0.2, 0.75, 0.3, 1) both;
+}
+
+.contact-container > * {
+    position: relative;
+    z-index: 1;
+}
+
+.contact-container::before,
+.contact-container::after {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.contact-container::before {
+    width: 360px;
+    aspect-ratio: 1;
+    top: -230px;
+    right: -130px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 255, 213, 0.2), rgba(139, 92, 246, 0.09) 40%, transparent 70%);
+    filter: blur(8px);
+    animation: contact-orb 9s ease-in-out infinite alternate;
+}
+
+.contact-container::after {
+    inset: 0;
+    opacity: 0.45;
+    background: linear-gradient(115deg, transparent 20%, rgba(255, 255, 255, 0.045) 48%, transparent 66%);
+    background-size: 220% 100%;
+    animation: glass-sheen 8s ease-in-out infinite;
+}
+
+@keyframes contact-arrive {
+    from { opacity: 0; transform: translateY(18px) scale(0.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes contact-orb {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-50px, 30px, 0); }
+}
+
+@keyframes glass-sheen {
+    0%, 15% { background-position: 100% 0; }
+    65%, 100% { background-position: -120% 0; }
 }
 
 .glass-panel {
@@ -787,8 +850,8 @@ h1.glitch::after {
 
 .contact-container h2 {
     font-family: var(--font-heading);
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
+    font-size: clamp(2.1rem, 5vw, 3rem);
+    margin-bottom: 0.65rem;
 }
 
 .contact-container h2 span {
@@ -797,7 +860,121 @@ h1.glitch::after {
 
 .contact-container p {
     color: var(--text-muted);
-    margin-bottom: 3rem;
+    margin-bottom: 0;
+}
+
+.contact-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 1rem;
+    color: var(--accent-2);
+    font-family: var(--font-heading);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+}
+
+.contact-status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-2);
+    box-shadow: 0 0 12px rgba(0, 255, 213, 0.8);
+    animation: contact-status 1.8s ease-in-out infinite;
+}
+
+@keyframes contact-status {
+    0%, 100% { opacity: 0.55; transform: scale(0.85); }
+    50% { opacity: 1; transform: scale(1.15); }
+}
+
+.contact-heading p {
+    margin: 0 auto 1.75rem;
+    font-size: 1rem;
+}
+
+.contact-email-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    min-width: 240px;
+    padding: 1rem 1.35rem;
+    border: 1px solid rgba(0, 255, 213, 0.7);
+    border-radius: 9px;
+    box-shadow: 0 0 25px rgba(0, 255, 213, 0.18), inset 0 0 20px rgba(255, 255, 255, 0.18);
+    animation: email-breathe 3.8s ease-in-out infinite;
+}
+
+.contact-email-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.contact-email-button .btn-glitch {
+    z-index: 0;
+}
+
+.contact-email-button > span:not(.btn-glitch) {
+    position: relative;
+    z-index: 1;
+}
+
+.contact-email-button > svg {
+    position: relative;
+    z-index: 1;
+}
+
+.contact-email-button:hover {
+    animation-play-state: paused;
+}
+
+@keyframes email-breathe {
+    0%, 100% { box-shadow: 0 0 18px rgba(0, 255, 213, 0.13), inset 0 0 16px rgba(255, 255, 255, 0.14); }
+    50% { box-shadow: 0 0 30px rgba(0, 255, 213, 0.28), inset 0 0 20px rgba(255, 255, 255, 0.2); }
+}
+
+.contact-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: min(100%, 440px);
+    margin: 2rem auto 1.35rem;
+    color: var(--text-muted);
+    font-family: var(--font-heading);
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    white-space: nowrap;
+}
+
+.contact-divider::before,
+.contact-divider::after {
+    content: '';
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(90deg, transparent, var(--glass-border));
+}
+
+.contact-divider::after {
+    transform: rotate(180deg);
+}
+
+.contact-container .social-links {
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.contact-container .github-feature-link {
+    margin: 0 auto;
+    background: rgba(3, 0, 20, 0.28);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.contact-container .contact-footnote {
+    margin-top: 1.1rem;
+    font-size: 0.76rem;
 }
 
 .cyber-button {
@@ -1167,6 +1344,69 @@ h1.glitch::after {
     margin-bottom: 2.5rem;
 }
 
+.github-feature-link {
+    width: min(100%, 440px);
+    min-height: 76px;
+    margin: -0.65rem auto 2rem;
+    padding: 0.9rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-align: left;
+    color: var(--text-main);
+    text-decoration: none;
+    background: linear-gradient(110deg, rgba(0, 255, 213, 0.1), rgba(139, 92, 246, 0.09));
+    border: 1px solid rgba(0, 255, 213, 0.3);
+    border-radius: 10px;
+    transition: transform 0.25s, border-color 0.25s, background 0.25s;
+}
+
+.github-feature-link:hover,
+.github-feature-link:focus-visible {
+    transform: translateY(-3px);
+    border-color: var(--accent-2);
+    background: rgba(0, 255, 213, 0.15);
+}
+
+.github-feature-icon {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    display: grid;
+    place-items: center;
+    color: var(--accent-2);
+    background: rgba(3, 0, 20, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+}
+
+.github-feature-icon svg {
+    width: 25px;
+    height: 25px;
+}
+
+.github-feature-copy {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.github-feature-copy strong {
+    font-family: var(--font-heading);
+    letter-spacing: 0.04em;
+}
+
+.github-feature-copy small {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.github-feature-arrow {
+    color: var(--accent-2);
+    font-size: 1.35rem;
+}
+
 .social-icon {
     position: relative;
     width: 60px;
@@ -1387,6 +1627,7 @@ h1.glitch::after {
 }
 
 .context-item {
+    width: 100%;
     padding: 10px 20px;
     display: flex;
     align-items: center;
@@ -1394,7 +1635,15 @@ h1.glitch::after {
     color: var(--text-main);
     font-size: 0.9rem;
     cursor: pointer;
+    text-align: left;
+    font: inherit;
+    background: transparent;
+    border: 0;
     transition: background 0.2s, color 0.2s, padding-left 0.2s;
+}
+
+.context-item[hidden] {
+    display: none;
 }
 
 .context-item:hover {
@@ -1404,17 +1653,139 @@ h1.glitch::after {
     border-left: 3px solid var(--accent-2);
 }
 
-/* Hack Mode Classes */
-.hacked-mode body {
-    filter: invert(1) hue-rotate(180deg) saturate(2);
+/* Hack Mode: reverse the palette on visual layers while keeping fixed controls in place. */
+html.hacked-mode {
+    background: radial-gradient(ellipse at center, #f7f2f5 0%, #c5c1d2 100%);
 }
 
-.hacked-mode .glitch {
-    animation: glitch-anim 0.5s infinite linear alternate-reverse !important;
+.hacked-mode main,
+.hacked-mode .glass-nav,
+.hacked-mode #media-modal,
+.hacked-mode .preview-container-page {
+    filter: invert(1) hue-rotate(180deg) saturate(1.65);
+    transition: filter 0.45s ease;
+}
+
+.hacked-mode #particles-canvas,
+.hacked-mode .bg-noise {
+    filter: invert(1) hue-rotate(180deg) saturate(1.8);
+}
+
+.hacked-mode .galaxy-spiral {
+    filter: invert(1) hue-rotate(180deg) saturate(1.8) blur(80px);
 }
 
 .hacked-mode .bg-orb {
-    animation-duration: 2s !important;
+    filter: invert(1) hue-rotate(180deg) saturate(1.8) blur(120px);
+}
+
+/* Full-screen scan effects and crimson highlights are isolated from document layout. */
+.hacked-mode body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    pointer-events: none;
+    opacity: 0.28;
+    background: repeating-linear-gradient(to bottom, transparent 0, transparent 3px, rgba(255, 0, 48, 0.2) 4px);
+    animation: hack-scan 1.8s linear infinite;
+}
+
+.hacked-mode body::after {
+    content: '';
+    position: fixed;
+    z-index: 9001;
+    top: 0;
+    left: -20vw;
+    width: 140vw;
+    height: 3px;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 0, 48, 0.98), rgba(255, 112, 0, 0.82), transparent);
+    box-shadow: 0 0 18px rgba(255, 0, 48, 0.9), 0 0 42px rgba(255, 0, 48, 0.42);
+    animation: hack-beam 3.2s ease-in-out infinite;
+}
+
+.hacked-mode .glass-nav,
+.hacked-mode .project-card,
+.hacked-mode .gallery-item {
+    outline: 1px solid rgba(255, 0, 48, 0.72);
+    outline-offset: 2px;
+    animation: hack-outline 1.6s ease-in-out infinite alternate;
+}
+
+.hacked-mode .contact-container {
+    outline: 1px solid rgba(255, 0, 48, 0.72);
+    outline-offset: 2px;
+}
+
+@keyframes hack-scan {
+    from { background-position-y: 0; }
+    to { background-position-y: 8px; }
+}
+
+@keyframes hack-beam {
+    0% { transform: translateY(-3px); opacity: 0; }
+    12% { opacity: 0.8; }
+    84% { opacity: 0.55; }
+    100% { transform: translateY(100vh); opacity: 0; }
+}
+
+@keyframes hack-outline {
+    from { outline-color: rgba(255, 0, 48, 0.24); }
+    to { outline-color: rgba(255, 0, 48, 0.95); }
+}
+
+.hacked-mode h1.glitch {
+    text-shadow: 3px 0 rgba(255, 0, 48, 0.75), -3px 0 rgba(0, 0, 0, 0.75), 0 0 24px rgba(255, 0, 48, 0.6);
+}
+
+.hacked-mode h1.glitch::before {
+    animation-duration: 0.72s;
+}
+
+.hacked-mode h1.glitch::after {
+    animation-duration: 0.58s;
+}
+
+.hacked-mode .cyber-context-menu {
+    background: rgba(24, 0, 8, 0.97);
+    border-color: #ff123c;
+    box-shadow: 0 0 24px rgba(255, 0, 48, 0.5), inset 0 0 18px rgba(255, 0, 48, 0.08);
+}
+
+.hacked-mode .cyber-context-menu .context-item:hover,
+.hacked-mode .cyber-context-menu .context-item.is-hacked {
+    color: #ff4963;
+}
+
+.hacked-mode .site-action-status {
+    color: #fff0f2;
+    background: rgba(30, 0, 8, 0.98);
+    border-color: #ff123c;
+    box-shadow: 0 0 20px rgba(255, 0, 48, 0.45);
+}
+
+.site-action-status {
+    position: fixed;
+    z-index: 100001;
+    left: 50%;
+    bottom: 24px;
+    max-width: min(90vw, 520px);
+    padding: 0.75rem 1rem;
+    color: var(--text-main);
+    background: rgba(3, 0, 20, 0.96);
+    border: 1px solid var(--accent-2);
+    border-radius: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 12px);
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.site-action-status.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
 }
 
 /* --- Page Transition Shutter --- */
@@ -1917,5 +2288,58 @@ h1.glitch::after {
         border-radius: 0;
         width: 100% !important;
         height: 100% !important;
+    }
+
+    .scroll-indicator {
+        bottom: 2rem;
+        gap: 0.35rem;
+        font-size: 0.64rem;
+    }
+
+    .github-feature-link {
+        gap: 0.75rem;
+        padding: 0.8rem;
+    }
+
+    .github-feature-copy small {
+        font-size: 0.7rem;
+    }
+
+    .contact-container.glass-panel {
+        padding: 2rem 1.25rem !important;
+        border-radius: 22px;
+    }
+
+    .contact-container .social-links {
+        gap: 0.8rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .scroll-indicator,
+    .explore-arrow,
+    .github-feature-link,
+    .context-item,
+    .site-action-status {
+        transition-duration: 0.01ms !important;
+    }
+
+    .hacked-mode body::before,
+    .hacked-mode body::after,
+    .hacked-mode .glass-nav,
+    .hacked-mode .project-card,
+    .hacked-mode .gallery-item,
+    .hacked-mode h1.glitch::before,
+    .hacked-mode h1.glitch::after,
+    .hacked-mode .contact-container,
+    .contact-container,
+    .contact-container::before,
+    .contact-container::after,
+    .contact-status-dot,
+    .contact-email-button,
+    .mouse::before,
+    .galaxy-spiral,
+    .bg-orb {
+        animation: none !important;
     }
 }

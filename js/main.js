@@ -208,46 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Custom Cursor ---
-    const cursorDot = document.querySelector('.cursor-dot');
-    const cursorOutline = document.querySelector('.cursor-outline');
-
-    if (cursorDot && cursorOutline) {
-        window.addEventListener('mousemove', (e) => {
-            const posX = e.clientX;
-            const posY = e.clientY;
-
-            cursorDot.style.left = `${posX}px`;
-            cursorDot.style.top = `${posY}px`;
-
-            // Adding a tiny lerp/lag effect to cursor outline (makes it feel premium)
-            cursorOutline.animate({
-                left: `${posX}px`,
-                top: `${posY}px`
-            }, { duration: 125, fill: "forwards" });
-        });
-    }
-
-    // Hover effects for cursor
-    function initCursorHover() {
-        if (!cursorOutline) return;
-        const hoverElements = document.querySelectorAll('a, button, .gallery-item, .project-card, .cyber-button, .social-icon, .close-modal, .device-btn');
-        hoverElements.forEach(el => {
-            el.addEventListener('mouseenter', () => {
-                cursorOutline.style.width = '60px';
-                cursorOutline.style.height = '60px';
-                cursorOutline.style.backgroundColor = 'rgba(0, 255, 204, 0.1)';
-                cursorOutline.style.borderColor = 'var(--accent-2)';
-            });
-            el.addEventListener('mouseleave', () => {
-                cursorOutline.style.width = '40px';
-                cursorOutline.style.height = '40px';
-                cursorOutline.style.backgroundColor = 'transparent';
-                cursorOutline.style.borderColor = 'rgba(0, 255, 213, 0.6)';
-            });
-        });
-    }
-
     // --- Navigation & Page Transition Shutter ---
     const navLinks = document.querySelectorAll('.nav-links a, .nav-logo');
     const shutter = document.querySelector('.page-shutter');
@@ -782,95 +742,218 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- Custom Context Menu & Hack Mode ---
+    // --- Custom Context Menu & Safe Hack Mode ---
     const ctxMenu = document.getElementById('cyber-context-menu');
     if (ctxMenu) {
+        const ctxCopy = document.getElementById('ctx-copy');
+        const ctxCopyImage = document.getElementById('ctx-copy-image');
+        const ctxCopyLink = document.getElementById('ctx-copy-link');
+        const ctxShare = document.getElementById('ctx-share');
+        const ctxHack = document.getElementById('ctx-hack');
+        const ctxMail = document.getElementById('ctx-mail');
+        const actionStatus = document.createElement('div');
+        let contextTarget = { text: '', image: null, link: '' };
+
+        actionStatus.className = 'site-action-status';
+        actionStatus.setAttribute('role', 'status');
+        actionStatus.setAttribute('aria-live', 'polite');
+        document.body.appendChild(actionStatus);
+
+        function announceAction(message) {
+            actionStatus.textContent = message;
+            actionStatus.classList.add('is-visible');
+            clearTimeout(actionStatus.hideTimer);
+            actionStatus.hideTimer = setTimeout(() => actionStatus.classList.remove('is-visible'), 2400);
+        }
+
+        function closeContextMenu() {
+            ctxMenu.style.display = 'none';
+            ctxMenu.setAttribute('aria-hidden', 'true');
+        }
+
+        function setContextLabel(button, label) {
+            if (!button) return;
+            const labelNode = Array.from(button.childNodes).find(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+            if (labelNode) labelNode.textContent = label;
+        }
+
+        async function copyText(text) {
+            if (!text) throw new Error('Kopyalanacak içerik bulunamadı.');
+            if (navigator.clipboard && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return;
+                } catch (error) {
+                    // Continue to the legacy fallback when clipboard permissions are unavailable.
+                }
+            }
+            const helper = document.createElement('textarea');
+            helper.value = text;
+            helper.setAttribute('readonly', '');
+            helper.style.position = 'fixed';
+            helper.style.opacity = '0';
+            document.body.appendChild(helper);
+            helper.select();
+            const copied = document.execCommand('copy');
+            helper.remove();
+            if (!copied) throw new Error('Panoya erişilemedi.');
+        }
+
+        async function copyImage(image) {
+            if (!image?.src) throw new Error('Kopyalanacak resim bulunamadı.');
+            if (navigator.clipboard?.write && window.ClipboardItem && window.isSecureContext) {
+                try {
+                    const response = await fetch(image.currentSrc || image.src, { mode: 'cors' });
+                    if (!response.ok) throw new Error('Resim alınamadı.');
+                    const bitmap = await createImageBitmap(await response.blob());
+                    const canvas = document.createElement('canvas');
+                    canvas.width = bitmap.width;
+                    canvas.height = bitmap.height;
+                    canvas.getContext('2d').drawImage(bitmap, 0, 0);
+                    bitmap.close();
+                    const pngBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                    if (!pngBlob) throw new Error('Resim dönüştürülemedi.');
+                    await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob })]);
+                    return 'Resim panoya kopyalandı.';
+                } catch (error) {
+                    await copyText(image.currentSrc || image.src);
+                    return 'Resim kopyalanamadı; resim bağlantısı panoya kopyalandı.';
+                }
+            }
+            await copyText(image.currentSrc || image.src);
+            return 'Bu tarayıcı resim panosunu desteklemiyor; resim bağlantısı kopyalandı.';
+        }
+
         document.addEventListener('contextmenu', (e) => {
+            if (e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
             e.preventDefault();
+            const selection = window.getSelection()?.toString().trim() || '';
+            const image = e.target.closest('img');
+            const link = e.target.closest('a');
+            contextTarget = { text: selection, image, link: link?.href || '' };
+
+            setContextLabel(ctxCopy, selection ? 'Seçimi kopyala' : (image ? 'Resim adresini kopyala' : 'Sayfa adresini kopyala'));
+            if (ctxCopyImage) ctxCopyImage.hidden = !image;
+            if (ctxCopyLink) ctxCopyLink.hidden = !link;
+            if (ctxShare) ctxShare.hidden = !(navigator.share || navigator.clipboard);
+
             ctxMenu.style.display = 'flex';
-
-            let x = e.clientX;
-            let y = e.clientY;
-
-            if (x + 200 > window.innerWidth) x = window.innerWidth - 200;
-            if (y + 150 > window.innerHeight) y = window.innerHeight - 150;
-
+            ctxMenu.setAttribute('aria-hidden', 'false');
+            const bounds = ctxMenu.getBoundingClientRect();
+            const x = Math.max(8, Math.min(e.clientX, window.innerWidth - bounds.width - 8));
+            const y = Math.max(8, Math.min(e.clientY, window.innerHeight - bounds.height - 8));
             ctxMenu.style.left = `${x}px`;
             ctxMenu.style.top = `${y}px`;
         });
 
-        document.addEventListener('click', (e) => {
-            if (!ctxMenu.contains(e.target)) {
-                ctxMenu.style.display = 'none';
-            }
+        document.addEventListener('pointerdown', (e) => {
+            if (!ctxMenu.contains(e.target)) closeContextMenu();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && ctxMenu.style.display === 'flex') closeContextMenu();
         });
 
-        const ctxCopy = document.getElementById('ctx-copy');
-        if (ctxCopy) {
-            ctxCopy.addEventListener('click', () => {
-                navigator.clipboard.writeText(window.location.href);
-                ctxMenu.style.display = 'none';
-            });
-        }
+        ctxCopy?.addEventListener('click', async () => {
+            try {
+                await copyText(contextTarget.text || contextTarget.image?.currentSrc || contextTarget.link || window.location.href);
+                announceAction(contextTarget.text ? 'Seçili metin panoya kopyalandı.' : 'Bağlantı panoya kopyalandı.');
+            } catch (error) {
+                announceAction(error.message || 'Kopyalama başarısız oldu.');
+            }
+            closeContextMenu();
+        });
 
-        const ctxHack = document.getElementById('ctx-hack');
-        if (ctxHack) {
-            ctxHack.addEventListener('click', () => {
-                document.documentElement.classList.toggle('hacked-mode');
-                const isHacked = document.documentElement.classList.contains('hacked-mode');
-                ctxHack.innerHTML = isHacked ?
-                    `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Sistemi Geri Al` :
-                    `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Sistemi Hackle`;
-                ctxMenu.style.display = 'none';
-            });
-        }
+        ctxCopyImage?.addEventListener('click', async () => {
+            try {
+                announceAction(await copyImage(contextTarget.image));
+            } catch (error) {
+                announceAction(error.message || 'Resim kopyalanamadı.');
+            }
+            closeContextMenu();
+        });
 
-        const ctxMail = document.getElementById('ctx-mail');
+        ctxCopyLink?.addEventListener('click', async () => {
+            try {
+                await copyText(contextTarget.link);
+                announceAction('Bağlantı panoya kopyalandı.');
+            } catch (error) {
+                announceAction(error.message || 'Bağlantı kopyalanamadı.');
+            }
+            closeContextMenu();
+        });
+
+        ctxShare?.addEventListener('click', async () => {
+            try {
+                if (navigator.share) await navigator.share({ title: document.title, url: window.location.href });
+                else {
+                    await copyText(window.location.href);
+                    announceAction('Sayfa bağlantısı panoya kopyalandı.');
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') announceAction('Paylaşım açılamadı. Bağlantıyı kopyalamayı deneyin.');
+            }
+            closeContextMenu();
+        });
+
+        ctxHack?.addEventListener('click', () => {
+            const isHacked = document.documentElement.classList.toggle('hacked-mode');
+            ctxHack.setAttribute('aria-pressed', String(isHacked));
+            ctxHack.classList.toggle('is-hacked', isHacked);
+            setContextLabel(ctxHack, isHacked ? 'Hack modunu kapat' : 'Sistemi Hackle');
+            announceAction(isHacked ? 'Görsel hack modu açıldı.' : 'Görsel hack modu kapatıldı.');
+            closeContextMenu();
+        });
+
         if (ctxMail && typeof portfolioData !== 'undefined') {
             ctxMail.addEventListener('click', () => {
                 const mailHref = safeUrl(`mailto:${portfolioData.personal.email}`);
                 if (mailHref !== '#') window.location.href = mailHref;
-                ctxMenu.style.display = 'none';
+                closeContextMenu();
             });
         }
     }
-
-    // --- Security & Anti-Copy ---
-    document.addEventListener('dragstart', (e) => {
-        if (e.target.tagName === 'IMG') {
-            e.preventDefault();
-        }
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (
-            e.key === 'F12' ||
-            (e.ctrlKey && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) ||
-            (e.ctrlKey && ['U', 'u'].includes(e.key))
-        ) {
-            e.preventDefault();
-        }
-    });
 
     // Event Delegation for Copy Prompt Button
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('.copy-prompt-btn');
         if (btn) {
             const text = decodeURIComponent(btn.getAttribute('data-prompt'));
-            navigator.clipboard.writeText(text).then(() => {
-                const originalText = btn.innerHTML;
+            const originalText = btn.innerHTML;
+            copyPromptText(text).then(() => {
                 btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00ffd5" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Kopyalandı`;
                 btn.style.color = '#00ffd5';
                 setTimeout(() => {
                     btn.innerHTML = originalText;
                     btn.style.color = '';
                 }, 2000);
+            }).catch(() => {
+                btn.textContent = 'Kopyalanamadı';
+                setTimeout(() => { btn.innerHTML = originalText; }, 2000);
             });
         }
     });
 
+    async function copyPromptText(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            try {
+                return await navigator.clipboard.writeText(text);
+            } catch (error) {
+                // Continue to the legacy fallback when clipboard permissions are unavailable.
+            }
+        }
+        const helper = document.createElement('textarea');
+        helper.value = text;
+        helper.setAttribute('readonly', '');
+        helper.style.position = 'fixed';
+        helper.style.opacity = '0';
+        document.body.appendChild(helper);
+        helper.select();
+        const copied = document.execCommand('copy');
+        helper.remove();
+        if (!copied) throw new Error('Panoya erişilemedi.');
+    }
+
     // --- Initialize Auxiliary Listeners & Stagger Reveals ---
-    initCursorHover();
     initTiltEffects();
     initStaggerAnimations();
 });
